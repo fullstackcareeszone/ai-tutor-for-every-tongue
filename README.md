@@ -42,34 +42,9 @@ deepset/bert-base-cased-squad2 for Q&A
 tts_models/en/ljspeech/tacotron2-DDC (for TTS)
 
 
----
 
-## 📂 Project Structure
 
-ai-tutor-for-every-tongue/
-│
-├── day01-project/                 # Day 01: STT (Whisper) + Translation (Basic)
-│   ├── sample.opus               # Sample audio file
-│   ├── transcribe.py             # Whisper-based audio transcription
-│   ├── translated_pa.txt         # Translated output (Pashto)
-│
-├── day02-project/                 # Day 02: Translation Pipeline
-│   ├── huggingface_models/       # Hugging Face model assets (cached or custom)
-│   ├── mbart_translate.py        # MBART-based translation script
-│   ├── translate_pipeline.py     # Full audio → translated text pipeline
-│   ├── sample.opus               # Another test audio file
-│   ├── translated_ur.txt         # Urdu translation output
-│
-├── day03-project/                 # Day 03: Q&A + TTS
-│   ├── mbart.py                  # Alternate or extended MBART translator
-│   ├── QA.py                     # Question Answering using Hugging Face
-│   ├── tts_02.py                 # TTS implementation (likely alternate)
-│   ├── TTS.py                    # Main TTS script (Coqui / pyttsx3)
-│
-├── tts_env/                      # TTS-specific virtual environment
-│
-├── venv/                         # General project virtual environment
-│
+
 
 > **Branch:** `khansauro0j`  
 > **Contributor:** Khansa Urooj  
