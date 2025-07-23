@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ open: false }" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lisan Assistant - Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+
+  <!-- Lucide Icons (non-module) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Alpine.js -->
+  <script src="https://unpkg.com/alpinejs" defer></script>
+</head>
+
+<body class="bg-gray-100 text-gray-800 font-sans" x-data="{ open: false }">
+
+  <!-- Ask Lisan Button -->
+  <div class="fixed bottom-6 right-6 z-50">
+    <button @click="open = true"
+      class="bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700 transition focus:outline-none text-sm flex items-center space-x-2">
+      <i data-lucide="message-circle" class="w-4 h-4"></i>
+      <span>Ask Lisan</span>
+    </button>
+  </div>
+
+  <!-- Chat Window -->
+  <div x-show="open" x-transition
+    class="fixed bottom-20 right-6 w-full max-w-md bg-white rounded-xl shadow-xl border border-gray-300 z-50 flex flex-col h-[70vh]"
+    @click.outside="open = false">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center bg-blue-600 text-white px-4 py-3 rounded-t-xl">
+      <h3 class="text-lg font-semibold">Lisan Assistant</h3>
+      <button @click="open = false" class="hover:text-gray-200">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Chat Display -->
+    <div id="chatBox" class="flex-1 overflow-y-auto px-4 py-3 space-y-2 text-sm bg-gray-50">
+      <div class="bg-gray-200 p-2 rounded-md inline-block max-w-[80%]">Lisan: Hi there! Ask me anything.</div>
+    </div>
+
+    <!-- Chat Input -->
+    <form id="chatForm" class="p-3 border-t flex items-center space-x-2 bg-white">
+      <input type="text" id="question" placeholder="Ask your question..."
+        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        required />
+      <button type="submit"
+        class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition">
+        <i data-lucide="send" class="w-4 h-4"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- JS: Chat Logic -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const chatBox = document.getElementById("chatBox");
+      const form = document.getElementById("chatForm");
+      const input = document.getElementById("question");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const question = input.value.trim();
+        if (!question) return;
+
+        // User message
+        const userMsg = document.createElement("div");
+        userMsg.className = "text-right bg-blue-100 text-blue-800 p-2 rounded-md inline-block ml-auto max-w-[80%]";
+        userMsg.textContent = question;
+        chatBox.appendChild(userMsg);
+
+        // Bot placeholder
+        const botMsg = document.createElement("div");
+        botMsg.className = "text-left bg-gray-200 p-2 rounded-md inline-block max-w-[80%]";
+        botMsg.textContent = "Thinking...";
+        chatBox.appendChild(botMsg);
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+          const res = await fetch("http://localhost:8000/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question }),
+          });
+
+          const data = await res.json();
+          botMsg.textContent = data.answer || data.detail || "No answer available.";
+        } catch (err) {
+          botMsg.textContent = "An error occurred.";
+        }
+
+        input.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

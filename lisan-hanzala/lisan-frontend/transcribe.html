@@ -1,0 +1,168 @@
+<!-- transcribe.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Transcribe Audio - Lisan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <!-- Navbar -->
+  <nav class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2 text-blue-700">
+        <i data-lucide="languages" class="w-6 h-6"></i>
+        <h1 class="text-xl sm:text-2xl font-bold">Lisan - The AI Tutor for Every Tongue</h1>
+      </div>
+      <ul class="flex space-x-6 text-gray-700 font-medium">
+        <li><a href="index.html" class="hover:text-blue-600">Home</a></li>
+        <li><a href="transcribe.html" class="hover:text-blue-600">Transcribe</a></li>
+        <li><a href="text-to-speech.html" class="hover:text-blue-600">TTS</a></li>
+        <li><a href="translate.html" class="hover:text-blue-600">Translate</a></li>
+        <li><a href="video-translate.html" class="hover:text-blue-600">Video Translate</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="max-w-3xl mx-auto py-10 px-4">
+    <div class="flex items-center space-x-2 mb-6">
+      <i data-lucide="mic" class="w-6 h-6 text-blue-600"></i>
+      <h1 class="text-2xl font-semibold">Speech to Text</h1>
+    </div>
+
+    <!-- File Upload Form -->
+    <form id="asrForm" class="bg-white p-6 rounded-md shadow space-y-4 border" enctype="multipart/form-data">
+      <input type="file" name="file" id="file" accept="audio/*" class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700" required />
+
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full">Transcribe</button>
+    </form>
+
+    <!-- Live Recorder -->
+    <div class="bg-white p-6 rounded-md shadow border mt-6 space-y-4">
+      <div class="flex items-center space-x-2">
+        <i data-lucide="audio-lines" class="w-5 h-5 text-red-600"></i>
+        <h2 class="text-lg font-semibold">Record live audio</h2>
+      </div>
+      <div class="flex space-x-4">
+        <button id="startRecord" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Start Recording</button>
+        <button id="stopRecord" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700" disabled>Stop</button>
+      </div>
+      <p id="recStatus" class="text-sm text-gray-500">Not recording.</p>
+    </div>
+
+    <!-- Transcript Display -->
+    <div id="result" class="mt-6 hidden bg-white p-4 rounded-md shadow border">
+      <div class="flex items-center space-x-2 mb-2">
+        <i data-lucide="text" class="w-5 h-5 text-green-600"></i>
+        <h2 class="text-lg font-semibold">Transcript</h2>
+      </div>
+      <p id="transcript" class="text-gray-700 whitespace-pre-wrap mb-4"></p>
+      <button id="downloadBtn" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Download .txt</button>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    const transcriptEl = document.getElementById('transcript');
+    const resultBox = document.getElementById('result');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    document.getElementById('asrForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = document.getElementById('file').files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const button = e.target.querySelector('button');
+      button.textContent = 'Transcribing...';
+      button.disabled = true;
+
+      try {
+        const res = await fetch("http://localhost:8000/transcribe", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        transcriptEl.textContent = data.transcribed_text || 'No transcript returned.';
+        resultBox.classList.remove('hidden');
+      } catch {
+        alert('Error transcribing audio.');
+      } finally {
+        button.textContent = 'Transcribe';
+        button.disabled = false;
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const blob = new Blob([transcriptEl.textContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'transcript.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Live recorder
+    let mediaRecorder;
+    let audioChunks = [];
+
+    const startBtn = document.getElementById('startRecord');
+    const stopBtn = document.getElementById('stopRecord');
+    const statusText = document.getElementById('recStatus');
+
+    startBtn.addEventListener('click', async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+
+      mediaRecorder.start();
+      statusText.textContent = 'Recording...';
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+
+      mediaRecorder.ondataavailable = (e) => {
+        audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append("file", audioBlob, "recording.webm");
+
+        statusText.textContent = 'Transcribing...';
+
+        try {
+          const res = await fetch("http://localhost:8000/transcribe", {
+            method: "POST",
+            body: formData
+          });
+          const data = await res.json();
+          transcriptEl.textContent = data.transcribed_text || 'No transcript returned.';
+          resultBox.classList.remove('hidden');
+          statusText.textContent = 'Recording complete.';
+        } catch {
+          statusText.textContent = 'Failed to transcribe.';
+        }
+
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      };
+    });
+
+    stopBtn.addEventListener('click', () => {
+      mediaRecorder.stop();
+      statusText.textContent = 'Processing...';
+    });
+  </script>
+</body>
+</html>
