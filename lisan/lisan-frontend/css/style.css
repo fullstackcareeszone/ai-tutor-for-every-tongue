@@ -1,0 +1,18 @@
+/* css/style.css */
+
+/* Safe to use: plain CSS only — no @apply! */
+
+body {
+    scroll-behavior: smooth;
+}
+
+.highlight {
+    color: #2563eb; /* Tailwind's blue-600 */
+    font-weight: bold;
+}
+
+.shadow-box {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
