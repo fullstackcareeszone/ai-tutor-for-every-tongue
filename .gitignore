@@ -1,0 +1,14 @@
+# Node.js
+lisan/**/node_modules/
+
+# Python
+lisan/**/__pycache__/
+lisan/**/venv/
+lisan/**/*.pyc
+
+# Mac/Linux/Windows system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
