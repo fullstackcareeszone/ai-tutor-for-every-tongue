@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lisan: AI Tutor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;}
+
+  </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen">
+
+  <!-- ✅ Professional Header -->
+  <header class="bg-white shadow sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-4">
+      <div>
+        <h1 class="text-5xl font-bold text-purple-700">Lisan</h1>
+        <p class="text-sm text-gray-500 -mt-1">AI Tutor for Every Tongue</p>
+      </div>
+      <nav class="flex flex-wrap gap-5 mt-4 md:mt-0 text-sm">
+        <a href="#upload-audio" class="text-purple-700 font-medium hover:underline">Upload Audio</a>
+        <a href="#translate" class="text-purple-700 font-medium hover:underline">Translate</a>
+        <a href="#tts" class="text-purple-700 font-medium hover:underline">Text to Speech</a>
+        <a href="#upload-video" class="text-purple-700 font-medium hover:underline">Upload Video</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ✅ Main Section -->
+  <main class="max-w-5xl mx-auto px-6 py-10">
+   
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Upload Audio -->
+      <section id="upload-audio" class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+        <h3 class="text-lg font-semibold mb-2"> Upload & Transcribe Audio</h3>
+        <input id="audioInput" type="file" accept="audio/*" class="w-full p-2 border rounded mb-4" />
+        <button id="uploadBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Transcribe</button>
+        <p class="mt-2 text-sm"><strong>Result:</strong> <span id="transcriptionResult"></span></p>
+      </section>
+
+      <!-- Translate -->
+      <section id="translate" class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+        <h3 class="text-lg font-semibold mb-2"> Translate Transcription</h3>
+        <input id="targetLang" type="text" placeholder="e.g. en, ur, sd" class="w-full p-2 border rounded mb-4" />
+        <button id="translateBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Translate</button>
+        <p class="mt-2 text-sm"><strong>Translation:</strong> <span id="translationResult"></span></p>
+      </section>
+
+      <!-- TTS -->
+      <section id="tts" class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+        <h3 class="text-lg font-semibold mb-2"> Text to Speech</h3>
+        <textarea id="ttsInput" placeholder="Type to hear..." rows="3" class="w-full p-2 border rounded mb-4"></textarea>
+        
+        <button id="speakBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Speak</button>
+
+        <p id="ttsStatus" class="text-sm text-purple-600 mt-2"></p>
+        <audio id="ttsPlayer" class="mt-2 w-full" controls hidden></audio>
+      </section>
+
+      <!-- Upload Video -->
+      <section id="upload-video" class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+        <h3 class="text-lg font-semibold mb-2"> Upload & Translate Video</h3>
+        <input type="file" id="videoInput" accept="video/*" class="w-full p-2 border rounded mb-4" />
+        <input type="text" id="videoLang" placeholder="Target language (e.g. en, ur)" class="w-full p-2 border rounded mb-4" />
+        <button id="videoBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Translate Video</button>
+        <video id="videoPlayer" controls hidden class="w-full mt-3 rounded shadow"></video>
+      </section>
+    </div>
+  </main>
+
+  <!-- ✅ Chatbot -->
+  <div id="chatbot" class="fixed bottom-6 right-6 z-50">
+    <button id="toggleChat" class="bg-purple-700 hover:bg-purple-800 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl">
+      💬
+    </button>
+    <div id="chatWindow" class="hidden mt-3 w-80 bg-white border rounded-xl shadow-lg overflow-hidden">
+      <div class="bg-purple-700 text-white p-4 font-semibold">Lisan Assistant</div>
+      <div class="p-3 h-48 overflow-y-auto text-sm text-gray-700" id="chatMessages">
+        <p class="text-gray-500 italic">Ask your question...</p>
+      </div>
+      <div class="flex border-t">
+        <input id="chatInput" type="text" placeholder="Type a question..." class="flex-1 p-2 text-sm outline-none"/>
+        <button id="sendBtn" class="bg-purple-600 text-white px-4 hover:bg-purple-700">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Scripts -->
+  <script>
+    document.getElementById("toggleChat").addEventListener("click", () => {
+      document.getElementById("chatWindow").classList.toggle("hidden");
+    });
+
+    document.getElementById("uploadBtn").addEventListener("click", async () => {
+      const file = document.getElementById("audioInput").files[0];
+      if (!file) return alert("Please select an audio file.");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("http://localhost:8000/asr/transcribe", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      document.getElementById("transcriptionResult").textContent = data.text;
+    });
+
+    document.getElementById("translateBtn").addEventListener("click", async () => {
+      const text = document.getElementById("transcriptionResult").textContent.trim();
+      const lang = document.getElementById("targetLang").value.trim();
+      if (!text || !lang) return alert("Missing transcription or language.");
+
+      const res = await fetch("http://localhost:8000/translation/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, target_lang: lang })
+      });
+      const data = await res.json();
+      document.getElementById("translationResult").textContent = data.translated_text;
+    });
+
+    document.getElementById("speakBtn").addEventListener("click", async () => {
+      const input = document.getElementById("ttsInput");
+      const ttsPlayer = document.getElementById("ttsPlayer");
+      const ttsStatus = document.getElementById("ttsStatus");
+      const text = input.value.trim();
+
+      if (!text) return alert("Please enter text.");
+
+      input.value = "";
+      ttsStatus.textContent = "⏳ Generating speech...";
+
+      try {
+        const response = await fetch("http://localhost:8000/tts/speak", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        const audioUrl = `http://localhost:8000/static/${data.audio_file}?t=${Date.now()}`;
+
+        ttsPlayer.src = audioUrl;
+        ttsPlayer.hidden = false;
+        await ttsPlayer.play();
+        ttsStatus.textContent = "✅ Playing speech.";
+      } catch (err) {
+        console.error("TTS Error:", err);
+        ttsStatus.textContent = `❌ Failed: ${err.message}`;
+      }
+    });
+
+    document.getElementById("videoBtn").addEventListener("click", async () => {
+      const file = document.getElementById("videoInput").files[0];
+      const lang = document.getElementById("videoLang").value.trim();
+      const videoPlayer = document.getElementById("videoPlayer");
+      if (!file || !lang) return alert("Select a video and language.");
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("target_lang", lang);
+
+      const response = await fetch("http://localhost:8000/vvvideo/process-video", {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json();
+      const videoUrl = `http://localhost:8000/static/${data.processed_video_path}?t=${Date.now()}`;
+      videoPlayer.src = videoUrl;
+      videoPlayer.hidden = false;
+      videoPlayer.play();
+    });
+
+    document.getElementById("sendBtn").addEventListener("click", async () => {
+      const input = document.getElementById("chatInput");
+      const msgBox = document.getElementById("chatMessages");
+      const question = input.value.trim();
+      if (!question) return;
+
+      msgBox.innerHTML += `<div class="mb-2"><strong>You:</strong> ${question}</div>`;
+      input.value = "";
+
+      const res = await fetch("http://localhost:8000/gemini/qa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question })
+      });
+      const data = await res.json();
+      msgBox.innerHTML += `<div class="mb-2 text-purple-700"><strong>Lisan:</strong> ${data.answer}</div>`;
+      msgBox.scrollTop = msgBox.scrollHeight;
+    });
+  </script>
+</body>
+</html>
