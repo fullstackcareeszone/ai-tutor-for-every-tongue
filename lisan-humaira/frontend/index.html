@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lisan Tutor</title>
+    <link rel="stylesheet" href="static/index.css">
+</head>
+<body>
+
+    <header>
+        <h1>Lisan Tutor</h1>
+        <p>Audio ➔ Text ➔ Translation ➔ Speech Pipeline</p>
+    </header>
+
+    <main>
+        <!-- ASR Section -->
+        <div class="module">
+            <h2>Speech to Text (ASR)</h2>
+            <input type="file" id="asr-audio" />
+            <button onclick="handleASR()">Transcribe</button>
+            <p>Transcription:<span id="asr-output-display"></span></p>
+        </div>
+
+        <!-- Translation Section -->
+        <div class="module">
+            <h2>Translation</h2>
+            <select id="translate-lang">
+                <option value="en-ur">English ➔ Urdu</option>
+                <option value="ur-en">Urdu ➔ English</option>
+                <option value="en-fr">English ➔ French</option>
+                <option value="fr-en">French ➔ English</option>
+                <option value="en-es">English ➔ Spanish</option>
+                <option value="es-en">Spanish ➔ English</option>
+            </select>
+            <button onclick="handleTranslate()">Translate</button>
+            <p>Translation:<span id="translate-output-display"></span></p>
+        </div>
+
+        <!-- TTS Section -->
+        <div class="module">
+            <h2>Text to Speech (TTS)</h2>
+            <input type="text" id="tts-text" placeholder="Enter text for TTS" />
+            <button onclick="handleTTS()">Speak</button>
+            <audio id="tts-audio" controls></audio>
+        </div>
+
+        <!-- QA Section -->
+        <div class="module">
+            <h2>Question Answering</h2>
+            <input type="text" id="qa-question" placeholder="Ask your question here..." />
+            <button onclick="handleQA()">Get Answer</button>
+            <p>Answer:<span id="qa-output-display"></span></p>
+        </div>
+
+        <!-- Video Processing Section -->
+        <div class="module">
+            <h2>Video Processing</h2>
+            <input type="file" id="video-file" accept="video/*" />
+            <select id="video-lang">
+                <option value="ur">Urdu</option>
+                <option value="en">English</option>
+            </select>
+            <button onclick="handleVideo()">Process Video</button>
+            <div class="video-container">
+                <video id="output-video" controls style="display:none;"></video>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        &copy; 2025 Lisan Tutor. All rights reserved.
+    </footer>
+
+    <script src="static/index.js"></script>
+</body>
+</html>
