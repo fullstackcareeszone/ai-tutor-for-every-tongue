@@ -119,5 +119,3 @@ Developed by **Humaira Batool**
 - University: Fatima Jinnah Women University  
 ---
 
-## 📜 License
-This project is licensed under the MIT License.
