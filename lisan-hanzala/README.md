@@ -1,4 +1,4 @@
-# 📚 Lisan: The AI Tutor for Every Tongue
+# 📚 Lisan: The Smart Tutor for Every Tongue
 
 **Lisan** is a full-stack AI-powered tutor designed to help users translate, subtitle, and learn languages using state-of-the-art machine learning models. This project combines a beautiful frontend interface with a robust backend built using FastAPI.
 
@@ -150,3 +150,4 @@ To improve UI:
 ## 📬 Contribution
 
 Pull requests are welcome. For major changes, open an issue first to discuss what you would like to change.
+
